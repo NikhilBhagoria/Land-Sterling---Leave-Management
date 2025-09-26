@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Land Sterling - Leave Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #EAEAEA;
+        }
+
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background-color: #F5F5F5;
+            border-left: 4px solid #DC2626;
+        }
+
+        .leave-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .circle-inner {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        .calendar-header {
+            grid-template-columns: 120px repeat(7, 1fr);
+        }
+
+        .calendar-cell {
+            height: 80px;
+            padding: 8px;
+            border: 1px solid #E5E5E5;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        .calendar-day {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .calendar-event {
+            font-size: 10px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            margin-top: 2px;
+            max-width: 100%;
+            word-wrap: break-word;
+            text-align: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 8px;
+        }
+
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .action-btn {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .holiday-item {
+            padding: 12px;
+            border-bottom: 1px solid #E5E5E5;
+        }
+
+        .holiday-date {
+            font-weight: 600;
+        }
+
+        .tab-button {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .table-header {
+            background-color: #F9FAFB;
+            border-bottom: 2px solid #E5E5E5;
+        }
+
+        .table-row {
+            border-bottom: 1px solid #E5E5E5;
+        }
+
+        .table-cell {
+            padding: 12px 16px;
+        }
+
+        /* Right Holidays Panel - Full Height */
+        .holidays-sidebar {
+            position: sticky;
+            top: 24px;
+            /* offset for main padding */
+            height: fit-content;
+            max-height: calc(100vh - 130px);
+            /* accounts for header + padding */
+            overflow-y: auto;
+        }
+
+        @media (max-width: 1023px) {
+            .holidays-sidebar {
+                position: static;
+                max-height: none;
+                margin-top: 1.5rem;
+            }
+        }
+
+        .holidays-sidebar {
+            position: sticky;
+            top: 24px;
+            /* matches p-6 = 24px */
+            height: fit-content;
+            max-height: calc(100vh - 130px);
+            /* adjust based on header + padding */
+            overflow-y: auto;
+            /* Hide scrollbar */
+            scrollbar-width: none;
+            /* Firefox */
+            min-height:-webkit-fill-available
+        }
+
+        .holidays-sidebar::-webkit-scrollbar {
+            display: none;
+            /* Chrome, Safari, Edge */
+        }
+
+        @media (max-width: 1023px) {
+            .holidays-sidebar {
+                position: static;
+                max-height: none;
+                overflow-y: visible;
+                margin-top: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-200 p-4">
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b">
+            <div class="flex items-center">
+                <h1 class="text-2xl font-bold text-red-700">LAND STERLING</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="p-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-bell text-lg"></i>
+                </button>
+                <button class="p-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-comment-alt text-lg"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <img src="https://placehold.co/40x40" alt="User" class="rounded-full" />
+                    <span class="font-medium">Irshad Meer</span>
+                    <i class="fas fa-chevron-down text-sm text-gray-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex">
+            <!-- Left Navigation Sidebar -->
+            <div class="w-64 bg-white border-r min-h-screen p-6">
+                <nav>
+                    <ul class="space-y-2">
+                        <li class="sidebar-item p-3 flex items-center text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-tachometer-alt mr-3 text-gray-500"></i>
+                            Dashboard
+                        </li>
+                        <li class="sidebar-item p-3 flex items-center text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-user mr-3 text-gray-500"></i>
+                            Profile
+                        </li>
+                        <li
+                            class="sidebar-item p-3 flex items-center text-red-700 bg-red-50 border-l-4 border-red-700">
+                            <i class="fas fa-calendar-check mr-3 text-red-700"></i>
+                            Leave
+                        </li>
+                        <li class="sidebar-item p-3 flex items-center text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-file mr-3 text-gray-500"></i>
+                            Documents
+                        </li>
+                        <li class="sidebar-item p-3 flex items-center text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-chart-line mr-3 text-gray-500"></i>
+                            Valuations
+                        </li>
+                        <li class="sidebar-item p-3 flex items-center text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-gift mr-3 text-gray-500"></i>
+                            Benefits
+                        </li>
+                        <li class="sidebar-item p-3 flex items-center text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-trophy mr-3 text-gray-500"></i>
+                            Performance
+                        </li>
+                        <li class="sidebar-item p-3 flex items-center text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-money-bill-wave mr-3 text-gray-500"></i>
+                            Payroll
+                        </li>
+                        <li class="sidebar-item p-3 flex items-center text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-headset mr-3 text-gray-500"></i>
+                            Support
+                        </li>
+                        <li class="sidebar-item p-3 flex items-center text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-cog mr-3 text-gray-500"></i>
+                            Settings
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Main Content + Right Sidebar -->
+            <div class="flex-1 p-6">
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <!-- Main Content Area -->
+                    <div class="flex-1">
+                        <!-- Top Row: Leave Management + Team Availability -->
+                        <div class="flex flex-col lg:flex-row gap-6 mb-6">
+                            <!-- Leave Management -->
+                            <div class="bg-white rounded-lg p-6 shadow flex-1">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h2 class="text-lg font-semibold">Leave Management</h2>
+                                    <button
+                                        class="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700">
+                                        Request a Leave
+                                    </button>
+                                </div>
+                                <div class="flex justify-around mt-6">
+                                    <div class="text-center">
+                                        <div class="leave-circle mx-auto mb-2"
+                                            style="background: conic-gradient(#4ADE80 0%, #4ADE80 60%, #E5E5E5 60%, #E5E5E5 100%)">
+                                            <div class="circle-inner">15</div>
+                                        </div>
+                                        <div class="text-sm font-medium">Annual Leave</div>
+                                        <div class="text-xs text-gray-500">remaining</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="leave-circle mx-auto mb-2"
+                                            style="background: conic-gradient(#F59E0B 0%, #F59E0B 10%, #E5E5E5 10%, #E5E5E5 100%)">
+                                            <div class="circle-inner">01</div>
+                                        </div>
+                                        <div class="text-sm font-medium">Sick Leave</div>
+                                        <div class="text-xs text-gray-500">taken</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="leave-circle mx-auto mb-2"
+                                            style="background: conic-gradient(#FBBF24 0%, #FBBF24 40%, #E5E5E5 40%, #E5E5E5 100%)">
+                                            <div class="circle-inner">04</div>
+                                        </div>
+                                        <div class="text-sm font-medium">Other Leave</div>
+                                        <div class="text-xs text-gray-500">taken</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Team Availability -->
+                            <div class="bg-white rounded-lg p-6 shadow flex-1">
+                                <h2 class="text-lg font-semibold mb-4">Team Availability</h2>
+                                <div class="space-y-4">
+                                    <div class="flex items-center">
+                                        <div class="user-avatar">
+                                            <img src="https://placehold.co/32x32" alt="User" />
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="font-medium">Benny Chagur</div>
+                                            <span class="status-badge bg-green-100 text-green-800">Available</span>
+                                            <!-- <div class="text-xs text-gray-500">Available</div> -->
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="user-avatar">
+                                            <img src="https://placehold.co/32x32" alt="User" />
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="font-medium">John Doe</div>
+                                            <span class="status-badge bg-red-100 text-red-800">Annual Leave</span>
+                                            <!-- <div class="text-xs text-gray-500">On Leave</div> -->
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="user-avatar">
+                                            <img src="https://placehold.co/32x32" alt="User" />
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="font-medium">Alice Smith</div>
+                                            <span class="status-badge bg-green-100 text-green-800">Available</span>
+                                            <!-- <div class="text-xs text-gray-500">Available</div> -->
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="user-avatar">
+                                            <img src="https://placehold.co/32x32" alt="User" />
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="font-medium">Mark Wilson</div>
+                                            <span class="status-badge bg-orange-100 text-orange-800">Sick</span>
+                                            <!-- <div class="text-xs text-gray-500">Sick Leave</div> -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Calendar -->
+                        <div class="bg-white rounded-lg p-6 shadow mb-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold">Calendar</h2>
+                                <div class="flex space-x-2">
+                                    <button class="tab-button bg-red-100 text-red-700">Week</button>
+                                    <button class="tab-button bg-gray-100 text-gray-700">Month</button>
+                                    <button class="tab-button bg-gray-100 text-gray-700">Year</button>
+                                </div>
+                            </div>
+
+                            <div class="grid calendar-header text-sm font-medium text-gray-700 mb-2">
+                                <div>Team Member</div>
+                                <div>SUN 26</div>
+                                <div>MON 27</div>
+                                <div>TUE 28</div>
+                                <div>WED 29</div>
+                                <div>THU 30</div>
+                                <div>FRI 01</div>
+                                <div>SAT 02</div>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-0">
+                                <!-- Row 1 -->
+                                <div class="grid calendar-header text-sm font-medium text-gray-700">
+                                    <div>Benny Chagur</div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">26</div>
+                                    </div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">27</div>
+                                    </div>
+                                    <div class="calendar-cell bg-blue-50">
+                                        <div class="calendar-day">28</div>
+                                        <div class="calendar-event bg-blue-100 text-blue-800">Annual Leave from 28th to
+                                            29th</div>
+                                    </div>
+                                    <div class="calendar-cell bg-blue-50">
+                                        <div class="calendar-day">29</div>
+                                        <div class="calendar-event bg-blue-100 text-blue-800">Annual Leave from 28th to
+                                            29th</div>
+                                    </div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">30</div>
+                                    </div>
+                                    <div class="calendar-cell bg-purple-50">
+                                        <div class="calendar-day">01</div>
+                                        <div class="calendar-event bg-purple-100 text-purple-800">Public Holiday: Arafat
+                                            Day</div>
+                                    </div>
+                                    <div class="calendar-cell bg-purple-50">
+                                        <div class="calendar-day">02</div>
+                                        <div class="calendar-event bg-purple-100 text-purple-800">Public Holiday: Arafat
+                                            Day</div>
+                                    </div>
+                                </div>
+
+                                <!-- Row 2 -->
+                                <div class="grid calendar-header text-sm font-medium text-gray-700">
+                                    <div>John Doe</div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">26</div>
+                                    </div>
+                                    <div class="calendar-cell bg-green-50">
+                                        <div class="calendar-day">27</div>
+                                        <div class="calendar-event bg-green-100 text-green-800">4th Employment
+                                            anniversary</div>
+                                    </div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">28</div>
+                                    </div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">29</div>
+                                    </div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">30</div>
+                                    </div>
+                                    <div class="calendar-cell bg-purple-50">
+                                        <div class="calendar-day">01</div>
+                                        <div class="calendar-event bg-purple-100 text-purple-800">Public Holiday: Arafat
+                                            Day</div>
+                                    </div>
+                                    <div class="calendar-cell bg-purple-50">
+                                        <div class="calendar-day">02</div>
+                                        <div class="calendar-event bg-purple-100 text-purple-800">Public Holiday: Arafat
+                                            Day</div>
+                                    </div>
+                                </div>
+
+                                <!-- Row 3 -->
+                                <div class="grid calendar-header text-sm font-medium text-gray-700">
+                                    <div>Alice Smith</div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">26</div>
+                                    </div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">27</div>
+                                    </div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">28</div>
+                                    </div>
+                                    <div class="calendar-cell bg-yellow-50">
+                                        <div class="calendar-day">29</div>
+                                        <div class="calendar-event bg-yellow-100 text-yellow-800">Emergency Leave for 1
+                                            day</div>
+                                    </div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">30</div>
+                                    </div>
+                                    <div class="calendar-cell bg-purple-50">
+                                        <div class="calendar-day">01</div>
+                                        <div class="calendar-event bg-purple-100 text-purple-800">Public Holiday: Arafat
+                                            Day</div>
+                                    </div>
+                                    <div class="calendar-cell bg-purple-50">
+                                        <div class="calendar-day">02</div>
+                                        <div class="calendar-event bg-purple-100 text-purple-800">Public Holiday: Arafat
+                                            Day</div>
+                                    </div>
+                                </div>
+
+                                <!-- Row 4 -->
+                                <div class="grid calendar-header text-sm font-medium text-gray-700">
+                                    <div>Mark Wilson</div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">26</div>
+                                    </div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">27</div>
+                                    </div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">28</div>
+                                    </div>
+                                    <div class="calendar-cell bg-orange-50">
+                                        <div class="calendar-day">29</div>
+                                        <div class="calendar-event bg-orange-100 text-orange-800">Sick Leave Taken</div>
+                                    </div>
+                                    <div class="calendar-cell bg-pink-50">
+                                        <div class="calendar-day">30</div>
+                                    </div>
+                                    <div class="calendar-cell bg-purple-50">
+                                        <div class="calendar-day">01</div>
+                                        <div class="calendar-event bg-purple-100 text-purple-800">Public Holiday: Arafat
+                                            Day</div>
+                                    </div>
+                                    <div class="calendar-cell bg-purple-50">
+                                        <div class="calendar-day">02</div>
+                                        <div class="calendar-event bg-purple-100 text-purple-800">Public Holiday: Arafat
+                                            Day</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Legend -->
+                            <div class="flex flex-wrap mt-4 pt-4 border-t">
+                                <div class="legend-item">
+                                    <div class="legend-color bg-blue-100"></div>
+                                    <span class="text-xs">Annual Leave</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color bg-orange-100"></div>
+                                    <span class="text-xs">Sick Leave</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color bg-yellow-100"></div>
+                                    <span class="text-xs">Others Leave</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color bg-purple-100"></div>
+                                    <span class="text-xs">Public Holiday</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color bg-green-100"></div>
+                                    <span class="text-xs">Employment anniversary</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Leave Record -->
+                        <div class="bg-white rounded-lg p-6 shadow">
+                            <h2 class="text-lg font-semibold mb-4">Leave Record</h2>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="table-header">
+                                        <tr>
+                                            <th class="table-cell text-left">Leave Type</th>
+                                            <th class="table-cell text-left">Status</th>
+                                            <th class="table-cell text-left">Date</th>
+                                            <th class="table-cell text-left">Notes</th>
+                                            <th class="table-cell text-left">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="table-row">
+                                            <td class="table-cell">Annual Leave</td>
+                                            <td class="table-cell"><span
+                                                    class="status-badge bg-green-100 text-green-800">Approved</span>
+                                            </td>
+                                            <td class="table-cell">15th to 18th</td>
+                                            <td class="table-cell">Heading back to home</td>
+                                            <td class="table-cell">
+                                                <button class="action-btn bg-red-100 text-red-700">View</button>
+                                            </td>
+                                        </tr>
+                                        <tr class="table-row">
+                                            <td class="table-cell">Sick Leave</td>
+                                            <td class="table-cell"><span
+                                                    class="status-badge bg-green-100 text-green-800">Approved</span>
+                                            </td>
+                                            <td class="table-cell">29th</td>
+                                            <td class="table-cell">Medical emergency</td>
+                                            <td class="table-cell">
+                                                <button class="action-btn bg-red-100 text-red-700">View</button>
+                                            </td>
+                                        </tr>
+                                        <tr class="table-row">
+                                            <td class="table-cell">Other Leave</td>
+                                            <td class="table-cell"><span
+                                                    class="status-badge bg-green-100 text-green-800">Approved</span>
+                                            </td>
+                                            <td class="table-cell">29th</td>
+                                            <td class="table-cell">Family function</td>
+                                            <td class="table-cell">
+                                                <button class="action-btn bg-red-100 text-red-700">View</button>
+                                            </td>
+                                        </tr>
+                                        <tr class="table-row">
+                                            <td class="table-cell">Annual Leave</td>
+                                            <td class="table-cell"><span
+                                                    class="status-badge bg-yellow-100 text-yellow-800">Pending</span>
+                                            </td>
+                                            <td class="table-cell">1st to 5th</td>
+                                            <td class="table-cell">Vacation trip</td>
+                                            <td class="table-cell">
+                                                <button class="action-btn bg-red-100 text-red-700">View</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar: Upcoming Public Holidays -->
+                    <!-- Right Sidebar: Upcoming Public Holidays -->
+                    <div class="holidays-sidebar w-full lg:w-80 flex-shrink-0">
+                        <div class="bg-white rounded-lg p-6 shadow h-full">
+                            <h2 class="text-lg font-semibold mb-4">Upcoming Public Holidays</h2>
+                            <div class="space-y-2">
+                                <!-- Add many holidays to test scrolling -->
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Jul 08, 2022</p><p class="text-xs text-gray-500">Friday</p></div>
+                                    <div class="text-sm mt-1">Arafat Day</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Jul 09, 2022</p><p class="text-xs text-gray-500">Saturday</p></div>
+                                    <div class="text-sm mt-1">Eid al-Adha</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Jul 10, 2022</p><p class="text-xs text-gray-500">Sunday</p></div>
+                                    <div class="text-sm mt-1">Eid al-Adha Holiday</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Jul 11, 2022</p><p class="text-xs text-gray-500">Monday</p></div>
+                                    <div class="text-sm mt-1">Eid al-Adha Holiday</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Jul 30, 2022</p><p class="text-xs text-gray-500">Saturday</p></div>
+                                    <div class="text-sm mt-1">Islamic New Year</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Oct 08, 2022</p><p class="text-xs text-gray-500">Saturday</p></div>
+                                    <div class="text-sm mt-1">Prophet Birthday</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Dec 01, 2022</p><p class="text-xs text-gray-500">Thursday</p></div>
+                                    <div class="text-sm mt-1">Commemoration Day</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Dec 02, 2022</p><p class="text-xs text-gray-500">Friday</p></div>
+                                    <div class="text-sm mt-1">National Day</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Dec 03, 2022</p><p class="text-xs text-gray-500">Saturday</p></div>
+                                    <div class="text-sm mt-1">National Day Holiday</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Jan 01, 2023</p><p class="text-xs text-gray-500">Sunday</p></div>
+                                    <div class="text-sm mt-1">New Year's Day</div>
+                                </div>
+                                <!-- Duplicate to force scroll -->
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Jan 26, 2023</p><p class="text-xs text-gray-500">Thursday</p></div>
+                                    <div class="text-sm mt-1">Republic Day</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Mar 01, 2023</p><p class="text-xs text-gray-500">Wednesday</p></div>
+                                    <div class="text-sm mt-1">Holi</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Apr 07, 2023</p><p class="text-xs text-gray-500">Friday</p></div>
+                                    <div class="text-sm mt-1">Good Friday</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Apr 14, 2023</p><p class="text-xs text-gray-500">Friday</p></div>
+                                    <div class="text-sm mt-1">Ambedkar Jayanti</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">May 01, 2023</p><p class="text-xs text-gray-500">Monday</p></div>
+                                    <div class="text-sm mt-1">Labour Day</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Jun 15, 2023</p><p class="text-xs text-gray-500">Thursday</p></div>
+                                    <div class="text-sm mt-1">Eid al-Fitr</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Aug 15, 2023</p><p class="text-xs text-gray-500">Tuesday</p></div>
+                                    <div class="text-sm mt-1">Independence Day</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Oct 02, 2023</p><p class="text-xs text-gray-500">Monday</p></div>
+                                    <div class="text-sm mt-1">Gandhi Jayanti</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Nov 12, 2023</p><p class="text-xs text-gray-500">Sunday</p></div>
+                                    <div class="text-sm mt-1">Diwali</div>
+                                </div>
+                                <div class="holiday-item">
+                                    <div><p class="holiday-date">Dec 25, 2023</p><p class="text-xs text-gray-500">Monday</p></div>
+                                    <div class="text-sm mt-1">Christmas</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
